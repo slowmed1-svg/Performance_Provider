@@ -1,6 +1,6 @@
 # CloudGPU — ComfyUI image for RunPod
-# Base: RunPod's official PyTorch image with CUDA 12.1
-FROM runpod/pytorch:2.3.0-py3.11-cuda12.1.1-devel-ubuntu22.04
+# Base: Official PyTorch image with CUDA 12.1 + cuDNN 8
+FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
