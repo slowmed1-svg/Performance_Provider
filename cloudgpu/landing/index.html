@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudGPU — RTX 4090 in Your Browser. €2/hour.</title>
+  <meta name="description" content="Launch a cloud RTX 4090 with ComfyUI or Blender pre-loaded in under 90 seconds. Pay per minute. No subscription. No install." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5' }
+          },
+          animation: {
+            'fade-in': 'fadeIn .6s ease both',
+            'pulse-slow': 'pulse 3s infinite',
+          },
+          keyframes: {
+            fadeIn: { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'none' } }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #030712; }
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .glow { box-shadow: 0 0 60px rgba(99, 102, 241, 0.15); }
+    .card-hover { transition: transform .2s, border-color .2s; }
+    .card-hover:hover { transform: translateY(-2px); border-color: rgba(99,102,241,.4); }
+    /* Fake terminal blink */
+    @keyframes blink { 50% { opacity: 0; } }
+    .blink { animation: blink 1s step-start infinite; }
+  </style>
+</head>
+<body class="text-white font-sans antialiased">
+
+  <!-- NAV -->
+  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/5 backdrop-blur-lg bg-gray-950/80">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-xs font-black">G</div>
+        <span class="font-bold text-lg tracking-tight">CloudGPU</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm text-gray-400">
+        <a href="#how" class="hover:text-white transition-colors">How it works</a>
+        <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+        <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+      </div>
+      <a href="#waitlist" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+        Join waitlist
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="pt-32 pb-20 px-6 text-center">
+    <div class="max-w-4xl mx-auto animate-fade-in">
+
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold px-4 py-2 rounded-full mb-8">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse-slow"></span>
+        Now in beta — RTX 4090 · ComfyUI · No install
+      </div>
+
+      <h1 class="text-5xl md:text-7xl font-black leading-[1.05] tracking-tight mb-6">
+        GPU workstation<br/>
+        <span class="gradient-text">in your browser.</span>
+      </h1>
+
+      <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-4">
+        Launch a cloud RTX 4090 with ComfyUI pre-loaded in under 90 seconds.
+        Pay only for the time you use. No subscription. No install. No credit card until you launch.
+      </p>
+
+      <!-- Price -->
+      <div class="flex items-baseline justify-center gap-1 mb-10">
+        <span class="text-5xl font-black text-white">€2</span>
+        <span class="text-gray-400 text-xl">/ hour</span>
+        <span class="text-gray-600 text-sm ml-2">· billed per minute</span>
+      </div>
+
+      <!-- CTA -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+        <a href="#waitlist" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-10 py-4 rounded-2xl text-lg transition-colors w-full sm:w-auto">
+          Join the waitlist
+        </a>
+        <a href="demo.html" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold px-10 py-4 rounded-2xl text-lg transition-colors w-full sm:w-auto">
+          Try the demo →
+        </a>
+      </div>
+
+      <!-- Connectivity indicator -->
+      <div id="conn-test" class="flex items-center justify-center gap-2 text-sm text-gray-500">
+        <span id="conn-dot" class="w-2.5 h-2.5 rounded-full bg-gray-600"></span>
+        <span id="conn-label">Testing your connection...</span>
+      </div>
+    </div>
+
+    <!-- Hero visual — fake terminal -->
+    <div class="max-w-2xl mx-auto mt-16 rounded-2xl border border-white/10 bg-gray-900/60 glow overflow-hidden text-left">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-gray-900/80">
+        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+        <span class="ml-3 text-xs text-gray-500 font-mono">cloud-session</span>
+      </div>
+      <div class="px-5 py-5 font-mono text-sm space-y-1.5 text-gray-300">
+        <p><span class="text-brand-400">→</span> Authenticating user...</p>
+        <p><span class="text-green-400">✓</span> Payment pre-authorized (€10 hold)</p>
+        <p><span class="text-brand-400">→</span> Requesting RTX 4090 on RunPod...</p>
+        <p><span class="text-green-400">✓</span> Pod allocated <span class="text-gray-500">pod_x7k2m</span></p>
+        <p><span class="text-brand-400">→</span> Loading ComfyUI + SDXL checkpoint...</p>
+        <p><span class="text-green-400">✓</span> Session ready in <span class="text-yellow-400">73s</span></p>
+        <p><span class="text-brand-400">→</span> Opening workstation...<span class="blink text-brand-400">▌</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-center mb-4">How it works</h2>
+      <p class="text-gray-400 text-center mb-16">From zero to generating images in under 2 minutes.</p>
+
+      <div class="grid md:grid-cols-4 gap-6">
+        <!-- Steps -->
+        <div class="relative">
+          <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 font-black text-lg mb-4">1</div>
+          <h3 class="font-bold mb-2">Create account</h3>
+          <p class="text-gray-400 text-sm">Email + password. No credit card required until you launch your first session.</p>
+          <div class="hidden md:block absolute top-5 left-full w-full h-px border-t border-dashed border-white/10 -translate-x-3"></div>
+        </div>
+        <div class="relative">
+          <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 font-black text-lg mb-4">2</div>
+          <h3 class="font-bold mb-2">Authorize €10 hold</h3>
+          <p class="text-gray-400 text-sm">We pre-authorize €10 on your card. You're only charged for what you actually use.</p>
+          <div class="hidden md:block absolute top-5 left-full w-full h-px border-t border-dashed border-white/10 -translate-x-3"></div>
+        </div>
+        <div class="relative">
+          <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 font-black text-lg mb-4">3</div>
+          <h3 class="font-bold mb-2">GPU boots (~90s)</h3>
+          <p class="text-gray-400 text-sm">Your RTX 4090 spins up with ComfyUI pre-loaded. You see a live countdown.</p>
+          <div class="hidden md:block absolute top-5 left-full w-full h-px border-t border-dashed border-white/10 -translate-x-3"></div>
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 font-black text-lg mb-4">4</div>
+          <h3 class="font-bold mb-2">Work, then exit</h3>
+          <p class="text-gray-400 text-sm">Full ComfyUI in your browser. Click "Save & Exit" — charged only for minutes used.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="py-16 px-6 bg-white/[0.02]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-center mb-16">Everything you need, nothing you don't</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Feature cards -->
+        <div class="card-hover bg-gray-900/60 border border-white/10 rounded-2xl p-6">
+          <div class="text-3xl mb-4">⚡</div>
+          <h3 class="font-bold text-lg mb-2">RTX 4090 · 24GB VRAM</h3>
+          <p class="text-gray-400 text-sm">Handles SDXL, Flux, ControlNet, video generation. No model too large. No queue.</p>
+        </div>
+        <div class="card-hover bg-gray-900/60 border border-white/10 rounded-2xl p-6">
+          <div class="text-3xl mb-4">🌐</div>
+          <h3 class="font-bold text-lg mb-2">Pure browser, zero install</h3>
+          <p class="text-gray-400 text-sm">Works on any laptop including Mac and cheap Windows machines. Open a tab, start working.</p>
+        </div>
+        <div class="card-hover bg-gray-900/60 border border-white/10 rounded-2xl p-6">
+          <div class="text-3xl mb-4">💳</div>
+          <h3 class="font-bold text-lg mb-2">Pay per minute</h3>
+          <p class="text-gray-400 text-sm">Billed per minute. Run for 23 minutes, pay €0.77. Minimum 5 minutes. No subscription.</p>
+        </div>
+        <div class="card-hover bg-gray-900/60 border border-white/10 rounded-2xl p-6">
+          <div class="text-3xl mb-4">🎨</div>
+          <h3 class="font-bold text-lg mb-2">ComfyUI pre-loaded</h3>
+          <p class="text-gray-400 text-sm">SDXL, Flux, and popular checkpoints already installed. Start generating immediately.</p>
+        </div>
+        <div class="card-hover bg-gray-900/60 border border-white/10 rounded-2xl p-6">
+          <div class="text-3xl mb-4">🔒</div>
+          <h3 class="font-bold text-lg mb-2">Your own isolated pod</h3>
+          <p class="text-gray-400 text-sm">Every session runs in its own container. No shared resources, no data leakage.</p>
+        </div>
+        <div class="card-hover bg-gray-900/60 border border-white/10 rounded-2xl p-6">
+          <div class="text-3xl mb-4">😴</div>
+          <h3 class="font-bold text-lg mb-2">Auto-sleep protection</h3>
+          <p class="text-gray-400 text-sm">Walk away and forget? We kill your session after 15 minutes of inactivity. No runaway bills.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl md:text-4xl font-black mb-4">Simple pricing</h2>
+      <p class="text-gray-400 mb-16">One plan. No tiers. No hidden fees.</p>
+
+      <div class="bg-gray-900/60 border border-brand-500/30 rounded-3xl p-10 glow max-w-md mx-auto">
+        <div class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-4">Pay as you go</div>
+        <div class="flex items-baseline justify-center gap-1 mb-2">
+          <span class="text-6xl font-black">€2</span>
+          <span class="text-gray-400 text-2xl">/hr</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-8">€0.033 per minute · 5 minute minimum</p>
+
+        <div class="space-y-3 text-left mb-8">
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-green-400 font-bold">✓</span>
+            <span>RTX 4090 (24GB VRAM)</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-green-400 font-bold">✓</span>
+            <span>ComfyUI with popular models</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-green-400 font-bold">✓</span>
+            <span>No subscription, no commitment</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-green-400 font-bold">✓</span>
+            <span>Inactivity auto-shutoff</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-green-400 font-bold">✓</span>
+            <span>Usage history + invoices</span>
+          </div>
+        </div>
+
+        <a href="#waitlist" class="block w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl transition-colors">
+          Join waitlist — it's free
+        </a>
+      </div>
+
+      <!-- Comparison -->
+      <div class="mt-16 overflow-x-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left py-3 px-4 text-gray-400 font-medium"></th>
+              <th class="py-3 px-4 text-brand-400 font-bold">CloudGPU</th>
+              <th class="py-3 px-4 text-gray-400 font-medium">Shadow PC</th>
+              <th class="py-3 px-4 text-gray-400 font-medium">RunPod (DIY)</th>
+              <th class="py-3 px-4 text-gray-400 font-medium">Local RTX 4090</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-400">
+            <tr class="border-b border-white/5">
+              <td class="py-3 px-4 text-white">Price</td>
+              <td class="py-3 px-4 text-white font-bold">€2/hr</td>
+              <td class="py-3 px-4">~€30/mo subscription</td>
+              <td class="py-3 px-4">$0.74/hr + setup time</td>
+              <td class="py-3 px-4">€2,000+ upfront</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-3 px-4 text-white">Billing</td>
+              <td class="py-3 px-4 text-white font-bold">Per minute</td>
+              <td class="py-3 px-4">Monthly, always on</td>
+              <td class="py-3 px-4">Per second</td>
+              <td class="py-3 px-4">Electricity only</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-3 px-4 text-white">Setup time</td>
+              <td class="py-3 px-4 text-white font-bold">&lt; 90 seconds</td>
+              <td class="py-3 px-4">Minutes (app install)</td>
+              <td class="py-3 px-4">Hours (Docker + config)</td>
+              <td class="py-3 px-4">Days</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-3 px-4 text-white">ComfyUI pre-loaded</td>
+              <td class="py-3 px-4 text-green-400 font-bold">✓</td>
+              <td class="py-3 px-4 text-red-400">✗</td>
+              <td class="py-3 px-4 text-yellow-400">Manual</td>
+              <td class="py-3 px-4 text-yellow-400">Manual</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 text-white">Browser-based</td>
+              <td class="py-3 px-4 text-green-400 font-bold">✓</td>
+              <td class="py-3 px-4 text-yellow-400">App required</td>
+              <td class="py-3 px-4 text-red-400">✗</td>
+              <td class="py-3 px-4 text-red-400">✗</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-24 px-6 bg-white/[0.02]">
+    <div class="max-w-2xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-center mb-16">Common questions</h2>
+      <div class="space-y-4" id="faq-list">
+        <!-- FAQ items injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- WAITLIST -->
+  <section id="waitlist" class="py-24 px-6">
+    <div class="max-w-lg mx-auto text-center">
+      <div class="text-4xl mb-4">🚀</div>
+      <h2 class="text-3xl md:text-4xl font-black mb-4">Get early access</h2>
+      <p class="text-gray-400 mb-10">
+        We're onboarding users in batches. Join the waitlist and we'll email you
+        when your spot is ready — plus a first-session discount.
+      </p>
+
+      <!-- Formspree form — replace ACTION_URL with your Formspree endpoint -->
+      <form
+        id="waitlist-form"
+        action="https://formspree.io/f/YOUR_FORM_ID"
+        method="POST"
+        class="space-y-4"
+      >
+        <input
+          type="email"
+          name="email"
+          placeholder="your@email.com"
+          required
+          class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors text-lg"
+        />
+        <input type="hidden" name="_subject" value="CloudGPU waitlist signup" />
+        <button
+          type="submit"
+          class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl text-lg transition-colors"
+        >
+          Reserve my spot
+        </button>
+        <p class="text-xs text-gray-600">No spam. Unsubscribe any time.</p>
+      </form>
+
+      <!-- Success state (hidden by default) -->
+      <div id="waitlist-success" class="hidden bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-green-400">
+        <div class="text-2xl mb-2">✓</div>
+        <p class="font-semibold">You're on the list!</p>
+        <p class="text-sm mt-1 text-green-500/80">We'll email you when your spot is ready.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 py-10 px-6 text-center text-gray-600 text-sm">
+    <div class="flex items-center justify-center gap-2 mb-4">
+      <div class="w-6 h-6 rounded-md bg-brand-500 flex items-center justify-center text-xs font-black text-white">G</div>
+      <span class="font-bold text-gray-400">CloudGPU</span>
+    </div>
+    <p>GPU compute for creators. Pay per minute, not per month.</p>
+    <p class="mt-2">© 2026 CloudGPU. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Connectivity test
+    (async () => {
+      const dot = document.getElementById('conn-dot');
+      const label = document.getElementById('conn-label');
+      const start = Date.now();
+      try {
+        await fetch(location.href, { method: 'HEAD', cache: 'no-store' });
+        const ms = Date.now() - start;
+        if (ms < 80) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-green-400';
+          label.textContent = `Great connection (${ms}ms) — streaming will be smooth`;
+        } else if (ms < 200) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-400';
+          label.textContent = `Acceptable connection (${ms}ms) — some lag possible`;
+        } else {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-red-400';
+          label.textContent = `Slow connection (${ms}ms) — latency may affect experience`;
+        }
+      } catch {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-gray-500';
+        label.textContent = 'Could not test connection';
+      }
+    })();
+
+    // FAQ accordion
+    const faqs = [
+      { q: 'Do I need to install anything?', a: 'No. Everything runs in your browser tab. Works on Mac, Windows, Linux, and Chromebook.' },
+      { q: 'What models are pre-installed?', a: 'SDXL base, SDXL Turbo, and Flux schnell. We\'re adding more checkpoints based on user feedback.' },
+      { q: 'Can I upload my own models or workflows?', a: 'Yes. During a session you can upload files directly within ComfyUI. They persist for the duration of the session.' },
+      { q: 'What happens to my work when the session ends?', a: 'All generated images can be downloaded before you exit. We recommend downloading everything before clicking "Save & Exit". Persistent storage (S3-backed) is coming in a future release.' },
+      { q: 'What if the GPU takes too long to start?', a: 'If your pod doesn\'t start within 3 minutes we cancel the session automatically and release the payment hold. You\'re not charged.' },
+      { q: 'Is there an inactivity limit?', a: 'Yes — if we detect no activity for 15 minutes, your session terminates automatically to prevent accidental charges.' },
+      { q: 'What happens to my card hold?', a: 'We pre-authorize €10 before the session starts. At the end, we capture only the exact amount you used. The remainder is released immediately.' },
+    ];
+
+    const list = document.getElementById('faq-list');
+    faqs.forEach(({ q, a }, i) => {
+      list.innerHTML += `
+        <div class="border border-white/10 rounded-xl overflow-hidden">
+          <button
+            onclick="toggleFaq(${i})"
+            class="w-full text-left px-6 py-5 flex items-center justify-between font-medium hover:bg-white/5 transition-colors"
+          >
+            <span>${q}</span>
+            <span id="faq-icon-${i}" class="text-brand-400 text-xl ml-4 flex-shrink-0">+</span>
+          </button>
+          <div id="faq-body-${i}" class="hidden px-6 pb-5 text-gray-400 text-sm leading-relaxed">
+            ${a}
+          </div>
+        </div>`;
+    });
+
+    function toggleFaq(i) {
+      const body = document.getElementById(`faq-body-${i}`);
+      const icon = document.getElementById(`faq-icon-${i}`);
+      const open = !body.classList.contains('hidden');
+      body.classList.toggle('hidden', open);
+      icon.textContent = open ? '+' : '−';
+    }
+
+    // Waitlist form AJAX submit
+    const form = document.getElementById('waitlist-form');
+    const success = document.getElementById('waitlist-success');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button[type=submit]');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        if (res.ok) {
+          form.classList.add('hidden');
+          success.classList.remove('hidden');
+        } else {
+          btn.textContent = 'Try again';
+          btn.disabled = false;
+        }
+      } catch {
+        btn.textContent = 'Try again';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

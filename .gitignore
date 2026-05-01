@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+*.egg
+
+# Env files — never commit secrets
+.env
+.env.local
+.env.production
+backend/.env
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.env.local
+
+# Docker
+runpod-image/*.tar
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Alembic — keep structure, ignore generated migration files that are environment-specific
+# (keep versions/ tracked so migrations run on deploy)
