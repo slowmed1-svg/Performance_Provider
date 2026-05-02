@@ -1,14 +1,14 @@
-FROM ubuntu:22.04
+FROM python:3.10-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 WORKDIR /workspace
 
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip git wget curl \
-    && ln -sf /usr/bin/python3 /usr/bin/python \
+# Only 3 packages needed — python + pip already included in this image
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git wget curl \
     && rm -rf /var/lib/apt/lists/*
 
+# PyTorch 2.3 with CUDA 12.1 runtime bundled
 RUN pip install --no-cache-dir \
     torch==2.3.0 torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/cu121
