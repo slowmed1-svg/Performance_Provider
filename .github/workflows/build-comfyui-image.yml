@@ -29,8 +29,7 @@ jobs:
           context: ./cloudgpu/runpod-image
           platforms: linux/amd64
           push: true
+          no-cache: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/cloudgpu-comfyui:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/cloudgpu-comfyui:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
